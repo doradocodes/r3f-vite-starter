@@ -1,47 +1,33 @@
 import {Canvas, useFrame, useThree} from "@react-three/fiber";
 import ImagePlane from "./components/ImagePlane.jsx";
-import {useEffect} from "react";
-
-function CameraSetup({speed = 0.01, startZ = 5, stopZ = 1}) {
-    const {camera} = useThree()
-
-    useEffect(() => {
-        camera.position.set(0, 0, startZ) // start position
-        camera.lookAt(0, 0, 0) // aim at the center
-    }, [camera, startZ])
-
-    useFrame(() => {
-        if (camera.position.z > stopZ) {
-            camera.position.z -= speed
-        }
-    })
-
-    return null
-}
-
-function randomInt(min, max) {
-    return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
+import {forwardRef, useEffect, useImperativeHandle, useRef, useState} from "react";
+import {Vector3} from "three";
+import CameraGsapController from "./components/CameraController.jsx";
+import * as THREE from "three";
 
 function App() {
+    const camRef = useRef()
 
-    const images = [];
-    for (let i = 1; i <= 15; i++) {
-        images.push({
-            image_url: `/_${i}.png`,
-            short_description: `Image ${i}`,
-            image_id: i,
-            position: [randomInt(-5, 5), randomInt(-5, 5), randomInt(-5, 5)],
-        });
-    }
+    const images = Array.from({ length: 15 }, (_, i) => ({
+        image_url: `/_${i + 1}.png`,
+        image_id: i + 1,
+        position: [
+            Math.floor(Math.random() * 11) - 5,
+            Math.floor(Math.random() * 11) - 5,
+            Math.floor(Math.random() * 11) - 5
+        ]
+    }))
 
     return (
         <Canvas shadows>
-            <CameraSetup speed={0.01} startZ={10} stopZ={1}/>
             <color attach="background" args={["#ececec"]}/>
+
             {/*<OrbitControls/>*/}
+
             <ambientLight/>
+
+            <CameraGsapController ref={camRef} startZ={20} dollyZ={2} dollySpeed={0.02} />
+
             {images.map((img) => (
                 <ImagePlane
                     key={img.image_id}
@@ -49,6 +35,10 @@ function App() {
                     width={2}
                     height={2}
                     position={img.position}
+                    onClick={(e) => {
+                        const p = e.object.getWorldPosition(new THREE.Vector3())
+                        camRef.current?.moveTo([p.x, p.y, p.z], 2) // pad by 2 in front
+                    }}
                 />
             ))}
         </Canvas>

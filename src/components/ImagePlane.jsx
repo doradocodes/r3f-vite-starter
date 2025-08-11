@@ -7,12 +7,13 @@ export default function ImagePlane({
                                        width = 1,
                                        height = 1,
                                        position = [0, 0, 0],
+                                       onClick,
                                    }) {
     const meshRef = useRef()
     const texture = useLoader(THREE.TextureLoader, url)
 
     return (
-        <mesh ref={meshRef} position={position}>
+        <mesh ref={meshRef} position={position} onClick={onClick}>
             <planeGeometry args={[width, height]} />
             <meshBasicMaterial map={texture} toneMapped={false} />
         </mesh>
